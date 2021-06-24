@@ -35,7 +35,10 @@ print("Minimum z-coordinate of clay is ", clay_pos_min [2])
 dynamic_ions=mda.AtomGroup(N1_Mg_eqd.select_atoms('(resname Mg or resname Cl) and (prop z > 89.049995 or prop z < 43.16)', updating=True))
 
 # ionic z-density profiles
-ionic_density=lin.LinearDensity(dynamic_ions).run()
+ionic_density=lin.LinearDensity(dynamic_ions, binsize=0.25).run()
 
-plt.plot(np.linspace(0, 50, 534), ionic_density.results['z']['pos'])
+plt.plot(np.linspace(0, 133.3808, 534), ionic_density.results['z']['char'])
+plt.xlabel("z-coordinate (Å)")
+plt.ylabel("Charge density")
+plt.title("ionic z-density profile")
 
