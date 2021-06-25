@@ -9,11 +9,15 @@ Created on Fri Jun 25 12:02:04 2021
 import MDAnalysis as mda
 from MDAnalysis.analysis import lineardensity as lin
 from MDAnalysis.analysis import density
+from MDAnalysis.analysis import rdf
 from MDAnalysis.topology import tpr
 from MDAnalysis.topology import TPRParser
 
 import pandas as pd
 import numpy as np
+import matplotlib as plt
+
+# from trial1.py
 
 def universe_help():
     '''Tells user how to create a universe
@@ -189,3 +193,32 @@ def charge_density(top, traj, atoms, dyn):
     print("Created y_char_dens with shape ", y_char_dens.shape)
     print("Created z_char_dens with shape ", z_char_dens.shape)
 
+#%%
+
+# from trial2.py
+
+def average_rdf(atomgroup1, atomgroup2, bins, rdf_range):
+    '''Plots the average radial distribution function for two AtomGroups
+    Parameters
+    -----------
+    atomgroup1: first AtomGroup
+    
+    atomgroup2: second AtomGroup
+    
+    bins: number of bins in the histogram
+    
+    rdf_range: size of rdf. two nummber need to be given in form (?.?, ?.?)
+    
+    Returns
+    --------
+    Plot of radius vs rdf'''
+    av_rdf=rdf.InterRDF(atomgroup1, atomgroup2, 
+                        nbins=bins,
+                        range=rdf_range).run()
+    av_rdf_plot=plt.plot(av_rdf.bins, av_rdf.rdf)
+    plt.xlabel('Radius (Å)')
+    plt.ylabel('Radial distribution')
+    return av_rdf_plot
+
+def specific_rdf():
+    '''Plots the site-specific radial distribution function'''
