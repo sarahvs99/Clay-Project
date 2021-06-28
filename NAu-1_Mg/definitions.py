@@ -42,9 +42,9 @@ def atomgroup_coords(atomgroup):
     Returns
     -------
     Minimum and maximum coordinates'''
-    positions=atomgroup.positions
-    min_coords=positions.min(axis=0)
-    max_coords=positions.max(axis=0)
+    at_pos=atomgroup.positions
+    min_coords=at_pos.min(axis=0)
+    max_coords=at_pos.max(axis=0)
     
     print("Minimum x-coordinate is ", min_coords[0]) 
     print("Maximum x-coordinate is ", max_coords[0])
@@ -54,6 +54,7 @@ def atomgroup_coords(atomgroup):
     print(' ')
     print("Minimum z-coordinate is ", min_coords[2]) 
     print("Maximum z-coordinate is ", max_coords[2])
+    return at_pos, min_coords, max_coords
 
 def position_density(top, traj, atoms, dyn):
     '''Creates dataframes of the mass-weighted position density of an AtomGroup along each axis
@@ -122,6 +123,8 @@ def position_density(top, traj, atoms, dyn):
     print("Created x_pos_dens with shape ", x_pos_dens.shape)
     print("Created y_pos_dens with shape ", y_pos_dens.shape)
     print("Created z_pos_dens with shape ", z_pos_dens.shape)
+    
+    return x_pos_dens, y_pos_dens, z_pos_dens
 
 def charge_density(top, traj, atoms, dyn):
     '''Creates dataframes of the charge density of an AtomGroup along each axis
@@ -192,6 +195,7 @@ def charge_density(top, traj, atoms, dyn):
     print("Created x_char_dens with shape ", x_char_dens.shape)
     print("Created y_char_dens with shape ", y_char_dens.shape)
     print("Created z_char_dens with shape ", z_char_dens.shape)
+    return x_char_dens, y_char_dens, z_char_dens
 
 #%%
 
