@@ -228,6 +228,8 @@ def average_rdf(atomgroup1, atomgroup2, bins, rdf_range):
 
 def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     '''Calculates the site-specific radial distribution function. Users can then choose to create .csv files and graphs of the outputs.
+    This function can take a long time to run before an output is given.
+    
     Parameters
     -----------
     universe: universe atomgroups are in
@@ -244,6 +246,7 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     ----------
     If the user wishes, .csv files and graphs can be created
     '''
+    print('The function "specific_rdf" is executing...')
     ss_rdf=rdf.InterRDF_s(universe, atom_pairs,
                           nbins=bins,
                           range=rdf_range,
