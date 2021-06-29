@@ -234,7 +234,7 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     -----------
     universe: universe atomgroups are in
     
-    atom_pairs: list of pairs of AtomGroup instances e.g. [[g1, g2], [g3, g4]]
+    atom_pairs: list of pairs of AtomGroups e.g. [[g1, g2], [g3, g4]] where g1 and g2 are two atomgroups whose interaction is under investigation
     
     bins: number of bins in the histogram
     
