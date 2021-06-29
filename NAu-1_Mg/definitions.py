@@ -211,9 +211,9 @@ def average_rdf(atomgroup1, atomgroup2, bins, rdf_range):
     
     atomgroup2: second AtomGroup
     
-    bins: number of bins in the histogram
+    bins: number of bins in the histogram. For default use 75
     
-    rdf_range: size of rdf. two nummber need to be given in form (?.?, ?.?)
+    rdf_range: spherical shell limit around each atom. two numbers need to be given in form (?.?, ?.?). For default use (0.0, 15.0)
     
     Returns
     --------
@@ -226,6 +226,30 @@ def average_rdf(atomgroup1, atomgroup2, bins, rdf_range):
     plt.ylabel('Radial distribution')
     return av_rdf_plot
 
+def intraAG_average_rdf(atomgroup1, bins, rdf_range, exclusion):
+    '''Plots the average radial distribution function for an AtomGroup to iself
+    Parameters
+    -----------
+    atomgroup1: AtomGroup being investigated
+    
+    bins: number of bins in the histogram. For default use 75
+    
+    rdf_range: spherical shell limit around each atom. Two numbers need to be given in form (?.?, ?.?). For default use (0.0, 15.0)
+    
+    exclusion: mask pairs within the same chunk of atoms. Two numbers to be given in the form (?, ?) which represents the size of the chunk excluded and does not need to be square. E.g. for the interaction between water molcules, give (3, 3) 
+    
+    Returns
+    --------
+    Plot of radius vs rdf'''
+    ag_av_rdf=rdf.InterRDF(atomgroup1, atomgroup1, 
+                        nbins=bins,
+                        range=rdf_range, exclusion_block=(exclusion)).run()
+    ag_av_rdf_plot=plt.plot(ag_av_rdf.bins, ag_av_rdf.rdf)
+    plt.xlabel('Radius (Å)')
+    plt.ylabel('Radial distribution')
+    return ag_av_rdf_plot
+    
+
 def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     '''Calculates the site-specific radial distribution function. Users can then choose to create .csv files and graphs of the outputs.
     This function can take a long time to run before an output is given.
@@ -234,11 +258,11 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     -----------
     universe: universe atomgroups are in
     
-    atom_pairs: list of pairs of AtomGroup instances e.g. [[g1, g2], [g3, g4]]
+    atom_pairs: list of pairs of AtomGroups e.g. [[g1, g2], [g3, g4]] where g1 and g2 are two atomgroups whose interaction is under investigation
     
-    bins: number of bins in the histogram
+    bins: number of bins in the histogram. For default use 75
     
-    rdf_range: spherical shell limit around each atom. two nummber need to be given in form (?.?, ?.?)
+    rdf_range: spherical shell limit around each atom. two numbers need to be given in form (?.?, ?.?). For default use (0.0, 15.0)
     
     dens: if True, final density is averaged. if False, density not average so harder to compare between different sizes of AtomGroups
     
@@ -256,7 +280,7 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     i=0
     for list_i in atom_pairs:
         print(' ')
-        print('result array of', list_i, 'has shape: {}'.format(ss_rdf.rdf[i].shape))
+        print('Result array of', list_i, 'with Aatom_pairs index of', i, 'has shape: {}'.format(ss_rdf.rdf[i].shape))
         l, m, nbin = np.nonzero(ss_rdf.rdf[i])
         save=input('Do you want to save the indices of the atom numbers where there are non-zero values for this array? (y/n): ')
         if save == 'y':
@@ -273,9 +297,9 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     
     while end_plot == 'y':
         
-        fig_name=input("Enter a name for graph: ")
+        fig_name=input("Enter a name for graph(no spaces): ")
     
-        i=int(input("Index of AtomGroup pair: "))
+        i=int(input("Index of AtomGroup pair in atom_pairs: "))
         j=int(input("Index of atom 1: "))
         k=int(input("Index of atom 2: "))
     
@@ -285,9 +309,11 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
         fig_name.set_ylabel('Radial Distribution Function')
         fig_name.set_title(input("Enter a title: "))
 
+        print('--------------------') 
         print(' ')
         end_plot=input("Do you want to continue plotting? (y/n): ")
     
+    print(' ')
     print('Thank you for using this function. Have a nice day!')
         
     
