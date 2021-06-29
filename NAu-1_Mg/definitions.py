@@ -280,7 +280,7 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     i=0
     for list_i in atom_pairs:
         print(' ')
-        print('Result array of', list_i, 'with Aatom_pairs index of', i, 'has shape: {}'.format(ss_rdf.rdf[i].shape))
+        print('Result array of', list_i, 'with Atom_pairs index of', i, 'has shape: {}'.format(ss_rdf.rdf[i].shape))
         l, m, nbin = np.nonzero(ss_rdf.rdf[i])
         save=input('Do you want to save the indices of the atom numbers where there are non-zero values for this array? (y/n): ')
         if save == 'y':
