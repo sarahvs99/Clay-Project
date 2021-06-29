@@ -227,7 +227,7 @@ def average_rdf(atomgroup1, atomgroup2, bins, rdf_range):
     return av_rdf_plot
 
 def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
-    '''Plots the site-specific radial distribution function
+    '''Calculates the site-specific radial distribution function. Users can then choose to create .csv files and graphs of the outputs.
     Parameters
     -----------
     universe: universe atomgroups are in
@@ -239,6 +239,10 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     rdf_range: spherical shell limit around each atom. two nummber need to be given in form (?.?, ?.?)
     
     dens: if True, final density is averaged. if False, density not average so harder to compare between different sizes of AtomGroups
+    
+    Returns
+    ----------
+    If the user wishes, .csv files and graphs can be created
     '''
     ss_rdf=rdf.InterRDF_s(universe, atom_pairs,
                           nbins=bins,
@@ -246,51 +250,42 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
                           density=dens).run()
     
     print(' ')
+    i=0
+    for list_i in atom_pairs:
+        print(' ')
+        print('result array of', list_i, 'has shape: {}'.format(ss_rdf.rdf[i].shape))
+        l, m, nbin = np.nonzero(ss_rdf.rdf[i])
+        save=input('Do you want to save the indices of the atom numbers where there are non-zero values for this array? (y/n): ')
+        if save == 'y':
+            file_name1=input('Enter the name for the file containing indices for atom 1. Must end in .csv : ')
+            np.savetxt(file_name1, l, delimiter=' ', fmt='%d')
+            file_name2=input('Enter the name for the file containing indices for atom 2. Must end in .csv : ')
+            np.savetxt(file_name2, m, delimiter=' ', fmt='%d')
+        
+        print('--------------------')    
+        i += 1
     
-    for i in atom_pairs:
-        print('result array', i,  'has shape: {}'.format(ss_rdf.rdf[0].shape))
-
     print(' ')
-    l, m, nbin = np.nonzero(ss_rdf.rdf[0])
-    print('Non-zero entries are present at:')
-    print('l=', l)
-    print('m=', m)
-    #print('nbin=', nbin)
-    print(' ')
-    print("Answer the following questions to plot graphs of the rdf.")
-    
-    fig_name=input("Enter a name for graph: ")
-    
-    i=int(input("Number of AtomGroup pair:"))
-    j=int(input("Number of atom 1:"))
-    k=int(input("Number of atom 2:"))
-    
-    fig, fig_name=plt.subplots()
-    fig_name.plot(ss_rdf.bins, ss_rdf.rdf[i][j][k])
-    fig_name.set_xlabel('Radius (Å)')
-    fig_name.set_ylabel('Radial Distribution Function')
-    fig_name.set_title(input("Enter a title:"))
-    
-    
-    end_plot=input("Do you want to continue plotting? (y/n):")
+    end_plot=input("Do you want to plot a graph? (y/n): ")
     
     while end_plot == 'y':
         
         fig_name=input("Enter a name for graph: ")
     
-        i=int(input("Number of AtomGroup pair:"))
-        j=int(input("Number of atom 1:"))
-        k=int(input("Number of atom 2:"))
+        i=int(input("Index of AtomGroup pair: "))
+        j=int(input("Index of atom 1: "))
+        k=int(input("Index of atom 2: "))
     
         fig, fig_name=plt.subplots()
         fig_name.plot(ss_rdf.bins, ss_rdf.rdf[i][j][k])
         fig_name.set_xlabel('Radius (Å)')
         fig_name.set_ylabel('Radial Distribution Function')
-        fig_name.set_title(input("Enter a title:"))
+        fig_name.set_title(input("Enter a title: "))
 
-        end_plot=input("Do you want to continue plotting? (y/n):")
+        print(' ')
+        end_plot=input("Do you want to continue plotting? (y/n): ")
     
-    
+    print('Thank you for using this function. Have a nice day!')
         
     
     
