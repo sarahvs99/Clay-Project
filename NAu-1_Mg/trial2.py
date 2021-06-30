@@ -27,3 +27,9 @@ ags=[[clay_oxy, SOL_upper], [Mg_upper, SOL_upper]]
 
 specific_rdf(u, ags, 75, (0.0, 10.0), True)
 
+
+N1_Mg_sim1=mda.Universe('N1_Mg_sim_1.tpr', 'N1_Mg_sim_1.trr')
+
+clay=mda.AtomGroup(N1_Mg_sim1.select_atoms('resname NON*'))
+atomgroup_coords(clay)
+position_density('N1_Mg_sim_1.tpr', 'N1_Mg_sim_1.trr', 'resname NON*', False)
