@@ -128,89 +128,36 @@ def position_density(top, traj, atoms, dyn):
     print("Created z position density df with shape ", z_pos_dens.shape)
     print(' ')
     
+    x_pos_np=x_pos_dens.to_numpy()
+    y_pos_np=y_pos_dens.to_numpy()
+    z_pos_np=z_pos_dens.to_numpy()
+    
+    pos_dens=np.dstack([x_pos_np, y_pos_np, z_pos_np])
+    
     plot=input('Would you like to plot any of the dataframes? (y/n): ')
     while plot == 'y':
         
-        plot_df=input('Which dataframe would you like to plot? (x/y/z): ')
+        axis=int(input('Which dataframe would you like to plot? Enter 0 for x, 1 for y and 2 for z: '))
         
-        if plot_df == 'x':
+        data_type=input('Which data would you like to plot on this graph? Options are non_normalised (non_norm), normalised (norm), both on the same graph (both): ')
         
-            data_type=input('Which data would you like to plot on this graph? Options are non_normalised (non_norm), normalised (norm), both on the same graph (both): ')
-        
-            if data_type == 'non_norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
+        if data_type == 'non_norm':
                 fig, fig_name=plt.subplots()
-                fig_name.plot(x_pos_dens['x-coordinate'], x_pos_dens['position density'])
-                fig_name.set_xlabel('x-coordinate (Å)')
+                fig_name.plot(pos_dens[:, 0, axis], pos_dens[:, 1, axis])
+                fig_name.set_xlabel('axis coordinate (Å)')
                 fig_name.set_ylabel('Position Density')
                 fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
+        elif data_type == 'norm':
                 fig, fig_name=plt.subplots()
-                fig_name.plot(x_pos_dens['x-coordinate'], x_pos_dens['normalised position density'])
-                fig_name.set_xlabel('x-coordinate (Å)')
+                fig_name.plot(pos_dens[:, 0, axis], pos_dens[:, 2, axis])
+                fig_name.set_xlabel('axis coordinate (Å)')
                 fig_name.set_ylabel('Position Density')
                 fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'both':
-                fig_name=input("Enter a name for graph(no spaces): ")
+        elif data_type == 'both':
                 fig, fig_name=plt.subplots()
-                fig_name.plot(x_pos_dens['x-coordinate'], x_pos_dens['position density'], '--', color='black', label="position density")
-                fig_name.plot(x_pos_dens['x-coordinate'], x_pos_dens['normalised position density'], ':', label="normalised position density")
-                fig_name.set_xlabel('x-coordinate (Å)')
-                fig_name.set_ylabel('Position Density')
-                fig_name.legend()
-                fig_name.set_title(input("Enter a title: "))
-        
-        elif plot_df == 'y':
-            data_type=input('Which data would you like to plot on this graph? Options are non_normalised (non_norm), normalised (norm), both on the same graph (both): ')
-        
-            if data_type == 'non_norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(y_pos_dens['y-coordinate'], y_pos_dens['position density'])
-                fig_name.set_xlabel('y-coordinate (Å)')
-                fig_name.set_ylabel('Position Density')
-                fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(y_pos_dens['y-coordinate'], y_pos_dens['normalised position density'])
-                fig_name.set_xlabel('y-coordinate (Å)')
-                fig_name.set_ylabel('Position Density')
-                fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'both':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(y_pos_dens['y-coordinate'], y_pos_dens['position density'], '--', color='black', label="position density")
-                fig_name.plot(y_pos_dens['y-coordinate'], y_pos_dens['normalised position density'], ':', label="normalised position density")
-                fig_name.set_xlabel('y-coordinate (Å)')
-                fig_name.set_ylabel('Position Density')
-                fig_name.legend()
-                fig_name.set_title(input("Enter a title: "))
-        
-        else:
-            data_type=input('Which data would you like to plot on this graph? Options are non_normalised (non_norm), normalised (norm), both on the same graph (both): ')
-        
-            if data_type == 'non_norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(z_pos_dens['z-coordinate'], z_pos_dens['position density'])
-                fig_name.set_xlabel('z-coordinate (Å)')
-                fig_name.set_ylabel('Position Density')
-                fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(z_pos_dens['z-coordinate'], z_pos_dens['normalised position density'])
-                fig_name.set_xlabel('z-coordinate (Å)')
-                fig_name.set_ylabel('Position Density')
-                fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'both':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(z_pos_dens['z-coordinate'], z_pos_dens['position density'], '--', color='black', label="position density")
-                fig_name.plot(z_pos_dens['z-coordinate'], z_pos_dens['normalised position density'], ':', label="normalised position density")
-                fig_name.set_xlabel('z-coordinate (Å)')
+                fig_name.plot(pos_dens[:, 0, axis], pos_dens[:, 1, axis], '--', color='black', label="position density")
+                fig_name.plot(pos_dens[:, 0, axis], pos_dens[:, 2, axis], ':', label="normalised position density")
+                fig_name.set_xlabel('axis coordinate (Å)')
                 fig_name.set_ylabel('Position Density')
                 fig_name.legend()
                 fig_name.set_title(input("Enter a title: "))
@@ -294,89 +241,36 @@ def charge_density(top, traj, atoms, dyn):
     print("Created z charge density df with shape ", z_char_dens.shape)
     print(' ')
     
+    x_char_np=x_char_dens.to_numpy()
+    y_char_np=y_char_dens.to_numpy()
+    z_char_np=z_char_dens.to_numpy()
+    
+    char_dens=np.dstack([x_char_np, y_char_np, z_char_np])
+    
     plot=input('Would you like to plot any of the dataframes? (y/n): ')
     while plot == 'y':
         
-        plot_df=input('Which dataframe would you like to plot? (x/y/z): ')
+        axis=int(input('Which dataframe would you like to plot? Enter 0 for x, 1 for y and 2 for z: '))
         
-        if plot_df == 'x':
+        data_type=input('Which data would you like to plot on this graph? Options are non_normalised (non_norm), normalised (norm), both on the same graph (both): ')
         
-            data_type=input('Which data would you like to plot on this graph? Options are non_normalised (non_norm), normalised (norm), both on the same graph (both): ')
-        
-            if data_type == 'non_norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
+        if data_type == 'non_norm':
                 fig, fig_name=plt.subplots()
-                fig_name.plot(x_char_dens['x-coordinate'], x_char_dens['charge density'])
-                fig_name.set_xlabel('x-coordinate (Å)')
+                fig_name.plot(char_dens[:, 0, axis], char_dens[:, 1, axis])
+                fig_name.set_xlabel('axis coordinate (Å)')
                 fig_name.set_ylabel('Charge Density')
                 fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
+        elif data_type == 'norm':
                 fig, fig_name=plt.subplots()
-                fig_name.plot(x_char_dens['x-coordinate'], x_char_dens['normalised charge density'])
-                fig_name.set_xlabel('x-coordinate (Å)')
+                fig_name.plot(char_dens[:, 0, axis], char_dens[:, 2, axis])
+                fig_name.set_xlabel('axis coordinate (Å)')
                 fig_name.set_ylabel('Charge Density')
                 fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'both':
-                fig_name=input("Enter a name for graph(no spaces): ")
+        elif data_type == 'both':
                 fig, fig_name=plt.subplots()
-                fig_name.plot(x_char_dens['x-coordinate'], x_char_dens['charge density'], '--', color='black', label="charge density")
-                fig_name.plot(x_char_dens['x-coordinate'], x_char_dens['normalised charge density'], ':', label="normalised charge density")
-                fig_name.set_xlabel('x-coordinate (Å)')
-                fig_name.set_ylabel('Charge Density')
-                fig_name.legend()
-                fig_name.set_title(input("Enter a title: "))
-        
-        elif plot_df == 'y':
-            data_type=input('Which data would you like to plot on this graph? Options are non_normalised (non_norm), normalised (norm), both on the same graph (both): ')
-        
-            if data_type == 'non_norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(y_char_dens['y-coordinate'], y_char_dens['charge density'])
-                fig_name.set_xlabel('y-coordinate (Å)')
-                fig_name.set_ylabel('Charge Density')
-                fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(y_char_dens['y-coordinate'], y_char_dens['normalised charge density'])
-                fig_name.set_xlabel('y-coordinate (Å)')
-                fig_name.set_ylabel('Charge Density')
-                fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'both':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(y_char_dens['y-coordinate'], y_char_dens['charge density'], '--', color='black', label="charge density")
-                fig_name.plot(y_char_dens['y-coordinate'], y_char_dens['normalised charge density'], ':', label="normalised charge density")
-                fig_name.set_xlabel('y-coordinate (Å)')
-                fig_name.set_ylabel('Charge Density')
-                fig_name.legend()
-                fig_name.set_title(input("Enter a title: "))
-        
-        else:
-            data_type=input('Which data would you like to plot on this graph? Options are non_normalised (non_norm), normalised (norm), both on the same graph (both): ')
-        
-            if data_type == 'non_norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(z_char_dens['z-coordinate'], z_char_dens['charge density'])
-                fig_name.set_xlabel('z-coordinate (Å)')
-                fig_name.set_ylabel('Charge Density')
-                fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'norm':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(z_char_dens['z-coordinate'], z_char_dens['normalised charge density'])
-                fig_name.set_xlabel('z-coordinate (Å)')
-                fig_name.set_ylabel('Charge Density')
-                fig_name.set_title(input("Enter a title: "))
-            elif data_type == 'both':
-                fig_name=input("Enter a name for graph(no spaces): ")
-                fig, fig_name=plt.subplots()
-                fig_name.plot(z_char_dens['z-coordinate'], z_char_dens['charge density'], '--', color='black', label="charge density")
-                fig_name.plot(z_char_dens['z-coordinate'], z_char_dens['normalised charge density'], ':', label="normalised charge density")
-                fig_name.set_xlabel('z-coordinate (Å)')
+                fig_name.plot(char_dens[:, 0, axis], char_dens[:, 1, axis], '--', color='black', label="charge density")
+                fig_name.plot(char_dens[:, 0, axis], char_dens[:, 2, axis], ':', label="normalised charge density")
+                fig_name.set_xlabel('axis coordinate (Å)')
                 fig_name.set_ylabel('Charge Density')
                 fig_name.legend()
                 fig_name.set_title(input("Enter a title: "))
