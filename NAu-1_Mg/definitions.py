@@ -7,15 +7,14 @@ Created on Fri Jun 25 12:02:04 2021
 """
 
 import MDAnalysis as mda
-from MDAnalysis.analysis import lineardensity as lin
-from MDAnalysis.analysis import density
-from MDAnalysis.analysis import rdf
 from MDAnalysis.topology import tpr
 from MDAnalysis.topology import TPRParser
 
+import scipy
+
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt 
 
 #%%
 
@@ -57,6 +56,11 @@ def atomgroup_coords(atomgroup):
     print("Minimum z-coordinate is ", min_coords[2]) 
     print("Maximum z-coordinate is ", max_coords[2])
     return at_pos, min_coords, max_coords
+
+#%%
+
+# Atomic density
+from MDAnalysis.analysis import lineardensity as lin
 
 def position_density(top, traj, atoms, dyn):
     '''Creates dataframes of the mass-weighted position density of an AtomGroup along each axis and gives the option to plot the DataFrames
@@ -287,7 +291,8 @@ def charge_density(top, traj, atoms, dyn):
 
 #%%
 
-# from trial2.py
+# RDF
+from MDAnalysis.analysis import rdf
 
 def average_rdf(atomgroup1, atomgroup2, bins, rdf_range):
     '''Plots the average radial distribution function for two AtomGroups
@@ -382,8 +387,6 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     end_plot=input("Do you want to plot a graph? (y/n): ")
     
     while end_plot == 'y':
-        
-        fig_name=input("Enter a name for graph(no spaces): ")
     
         i=int(input("Index of AtomGroup pair in atom_pairs: "))
         j=int(input("Index of atom 1: "))
@@ -401,10 +404,73 @@ def specific_rdf(universe, atom_pairs, bins, rdf_range, dens):
     
     print(' ')
     print('Thank you for using this function. Have a nice day!')
-        
+
+#%%
+
+# MSD
+from MDAnalysis.analysis import msd
+
+from scipy.stats import linregress
+from scipy.stats import t
+
+def mean_sq_disp(u, selection, dimension, algorithm):
+    '''Calculates and plots the mean-squared displacement using the Einstein relation.
+    WARNING: This function only works in MDAnalysis version 2.0.0 and higher
+    
+    Parameters
+    -----------
+    u: universe or (non-updating)AtomGroup
+    
+    selection: atom selection to calculate the msd for. Default is all
+    
+    dimension: desired dimension of the msd. Option are 'xyz', 'xy', 'yz', 'xz', 'x', 'y', 'z'. Default is xyz
+    
+    algorithm: if True, the fast FFT algorithm is used and tidynamics package is required. If False the simple 'windowed algorithm is used'''
     
     
+    MSD = msd.EinsteinMSD(u, select=selection, msd_type=dimension, fft=algorithm).run()
     
+    nframes = MSD.n_frames
+    print(' ')
+    print('To calculate the time between frames use: dt x nstxout (from .mdp)')
+    timestep=float(input('What is the time between frames? Give answer in nanoseconds: '))
+    sim_time = np.arange(nframes)*timestep
     
+    fig, fig_name=plt.subplots()
+    fig_name.plot(sim_time, MSD.results.timeseries)
+    fig_name.set_xlabel('Simulation time (ns)')
+    fig_name.set_ylabel('Mean-Squared Displacement')
+    fig_name.set_title(input("Enter a title: "))
+    plt.show()
     
+    start_time = int(input('What is the time at the start of the linear portion? '))
+    start_index = int(start_time/timestep)
+    end_time = int(input('What is the time at the end of the linear portion? '))
+    end_index = int(end_time/timestep)
+    linear_model = linregress(sim_time[start_index:end_index],
+                              MSD.results.timeseries[start_index:end_index])
     
+    fig, linear_plot=plt.subplots()
+    linear_plot.plot(sim_time, linear_model.intercept + linear_model.slope*sim_time)
+    linear_plot.set_xlabel('Simulation time (ns)')
+    linear_plot.set_ylabel('Mean-Squared Displacement')
+    linear_plot.set_title('Linear model of MSD')
+    plt.show()
+    
+    slope = linear_model.slope
+    error = linear_model.rvalue
+    
+    D = slope*1/(2*MSD.dim_fac)
+
+    # Two-sided inverse Students t-distribution
+    # p - probability, df - degrees of freedom
+    tinv = lambda p, df: abs(t.ppf(p/2, df))   
+    ts = tinv(0.05, len(sim_time)-2)
+
+    print(' ')
+    print(f'The coefficient of determination (R-squared) of the linear model is: {error**2:.6f}')
+    print('The diffusion coefficient is estimated to be: ', D)
+    print(f'The 95% confidence interval on the slope is: {slope:.6f} +/- {ts*linear_model.stderr:.6f}")')
+
+#%%
+
