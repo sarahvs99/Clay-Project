@@ -414,7 +414,7 @@ from scipy.stats import linregress
 from scipy.stats import t
 
 def mean_sq_disp(u, selection, dimension, algorithm):
-    '''Calculates and plots the mean-squared displacement using the Einstein relation.
+    '''Calculates and plots the mean-squared displacement using the Einstein relation. Estimates the diffusion coefficient using a linear model of the MSD.
     WARNING: This function only works in MDAnalysis version 2.0.0 and higher
     
     Parameters
@@ -474,3 +474,80 @@ def mean_sq_disp(u, selection, dimension, algorithm):
 
 #%%
 
+# RMSD
+from MDAnalysis.analysis import rms
+
+def coordinate_rmsd(atom_group1, atom_group2, geometry, rot_trans):
+    '''Calculates the Root Mean-Squared Deviation between two sets of coordinates
+    Parameters
+    ----------
+    atom_group1: first AtomGroup
+    
+    atom_group2: second AtomGroup
+    
+    geometry: If True the center of geometry is subtracted before calculation
+    
+    rot_trans: If True, the function performs a rotational and translational superposition with the fast QCP algorithm before calculation. Must have geometry=True 
+    '''
+    
+    a = atom_group1.positions
+    b = atom_group2.positions
+    
+    ab_rmsd=rms.rmsd(a, b, centre=geometry, superposition=rot_trans)
+    
+    return ab_rmsd
+
+def trajectory_rmsd(u1, u2, atom_sel, additional, reference):
+    '''Calculates the Root Mean-Squared Deviation of an entire trajectory to a single reference point. Automatically performs a rotational and translational alignment of the target trajectory to the reference universe
+    Warning: If using MDAnalysis version >=2.0.0 a depreciation warning will be printed during the use of the function
+    Parameters
+    -----------
+    u1: universe to calculate RMSD for
+    
+    u2: reference universe.
+    
+    atom_sel: atom selection to superimpose. Can be a selection string for select_atoms(), a dictiomary of the form {'mobile': sel1, 'reference': sel2}, or a tuple of the form (sel1, sel2). (sel1 and sel2 are valid selection strings that are applied to u1 and u2 respectively and must generate groups of equivalent atoms)
+    
+    additional: list of selections that are always applied to the full universes. Each selection describes additional RMSDs to be computed after the structures have been superimposed according to atom_sel
+    
+    reference: frame index to select the frame from reference. Default is 0
+    '''
+    
+    trj_rmsd=rms.RMSD(u1, u2, select=atom_sel, groupselections=additional, ref_frame=reference).run()
+    
+    cols = ['Frame', 'Time (ns)']
+    
+    selection=input('Enter a name for the atom_sel selection. This will be used as the column heading in the dataframe and the key on the graph of RMSD: ')
+    
+    cols.append(selection)
+    
+    print('------------------------')
+    
+    i=0
+    for list_i in additional:
+        print(' ')
+        print('Enter a name for ', additional[i], ':')
+        add_sel=input('This will be used as the column heading in the dataframe and the key on the graph of RMSD: ')
+        print('------------------------')
+        cols.append(add_sel)
+        i += 1
+      
+    rmsd_df=pd.DataFrame(trj_rmsd.rmsd, columns=cols)
+    
+    rmsd_plot=rmsd_df.plot(x='Time (ns)', y=cols[2:], kind='line')
+    rmsd_plot.set_ylabel('Root Mean-Squared Deviation (Å)')
+    rmsd_plot.set_title(input('Enter a title for graph of RMSD: '))
+    rmsd_plot.legend()
+    
+    return rmsd_df
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
