@@ -541,10 +541,92 @@ def trajectory_rmsd(u1, u2, atom_sel, additional, reference):
     
     return rmsd_df
     
+#%%   
+
+# distances and contacts
+from MDAnalysis.analysis import distances
+from MDAnalysis.analysis import contacts    
     
+def atom_match_dist(atom_group1, atom_group2, resid_offset, dims):
+    '''Calculates the distance between atoms in two atom groups. Most useful to show how atoms move throughout a simulation
+    Parameters
+    -----------
+    atom_group1: first AtomGroup
     
+    atom_group2: second AtomGroup. Must have the same number of atoms as atom_group1
     
+    resid_offset: an offset added to the resids of atom_group1 and atom_group2. If an integer is given, it is applied to both. If a tuple is given, offset[0] is added to atom_group1 and offset[1] is added to atom_group2. Default is 0
     
+    dims: unitcell dimensions of the system in the form [lx, ly, lz, alpha, beta, gamma] and used for simulations with periodic boundary conditions. If no pbc used, enter "None"
+    '''
+    
+    resids1, resids2, dist = distances.dist(atom_group1, atom_group2,
+                                        offset=resid_offset, box=dims)
+    
+    fig, dist_plot=plt.subplots()
+    dist_plot.plot(resids1, dist)
+    dist_plot.set_ylabel('Distance (Å)')
+    dist_plot.set_title(input('Enter a title for graph of distance vs resid: '))
+
+    
+def atom_nonmatch_dist(atom_group1, atom_group2, dims):
+    '''Calculates atom-to-atom distances between non-matching coordinate arrays
+    Parameters
+    -----------
+    atom_group1: reference AtomGroup
+    
+    atom_group2: configuration AtomGroup
+    
+    dims: unitcell dimensions of the system used for simulations with periodic boundary conditions. Must be in the form obtained by u.dimensions. If no pbc used, enter "None"
+    '''
+    dist_arr = distances.distance_array(atom_group1.positions, 
+                                    atom_group2.positions, 
+                                    box=dims)
+    
+    fig, dist_plot = plt.subplots()
+    im = dist_plot.imshow(dist_arr, origin='upper')
+    cbar = fig.colorbar(im)
+    cbar.dist_plot.set_ylabel('Distance (Å)')
+    tick_interval = 5
+    
+    dist_plot.set_xlabel(input('Enter a name for atom_group1, to be used as an axis label: '))
+    dist_plot.set_xticks(np.arange(len(atom_group1))[::tick_interval])
+    dist_plot.set_xticklabels(atom_group1.resids[::tick_interval])
+    
+    dist_plot.set_ylabel(input('Enter a name for atom_group2, to be used as an axis label: '))
+    dist_plot.set_yticks(np.arange(len(atom_group2))[::tick_interval])
+    dist_plot.set_yticklabels(atom_group2.resids[::tick_interval])
+
+    dist_plot.set_title(input('Enter a title for heatmap of distance: '))
+
+def atom_contacts(u, atom_group1, atom_group2, contact_rad):
+    '''Calculates the number of contacts between AtomGroups within the radius cutoff, for each frame in a trajectory and plots the information
+    Parameters
+    -------------
+    u: universe AtomGroups are taken from
+    
+    atom_group1: reference AtomGroup
+    
+    atom_group2: configuration AtomGroup
+    
+    contact_rad: cutoff radius for defining a contact. Must be an integer or float
+    
+    '''
+    
+    timeseries = []
+    for ts in u.trajectory:
+        dist = contacts.distance_array(atom_group1.positions, atom_group2.positions)
+        n_contacts = contacts.contact_matrix(dist, radius=contact_rad).sum()
+        timeseries.append([ts.frame, n_contacts])
+    
+    at_con = np.arrray(timeseries)
+    
+    at_con_df = pd.DataFrame(at_con, columns=['Frame',
+                                  '# Contacts'])
+    
+    at_con_plot=at_con_df.plot(x='Frame')
+    at_con_plot.set_ylabel('Number of Contacts')
+    at_con_plot.set_title(input('Enter a title for heatmap of distance: '))
     
     
     
