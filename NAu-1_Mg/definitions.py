@@ -624,9 +624,13 @@ def atom_contacts(u, atom_group1, atom_group2, contact_rad):
     at_con_df = pd.DataFrame(at_con, columns=['Frame',
                                   '# Contacts'])
     
-    at_con_plot=at_con_df.plot(x='Frame')
+    timestep=float(input('What is the time between frames? Give answer in nanoseconds: '))
+    at_con['Time (ns)']=(at_con['Frame']*timestep)
+    
+    at_con_plot=at_con_df.plot(x='Time (ns)', y='# Contacts')
     at_con_plot.set_ylabel('Number of Contacts')
-    at_con_plot.set_title(input('Enter a title for heatmap of distance: '))
+    at_con_plot.set_title(input('Enter a title for graph of contacts vs time: '))
+
     
     
     
