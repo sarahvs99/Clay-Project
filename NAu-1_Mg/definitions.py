@@ -57,6 +57,17 @@ def atomgroup_coords(atomgroup):
     print("Maximum z-coordinate is ", max_coords[2])
     return at_pos, min_coords, max_coords
 
+def ions(universe):
+    '''Tells user what input to use for selecting bulk ions as an AtomGroup'''
+    
+    clay=mda.AtomGroup(universe.select_atoms('resname NON*'))
+    
+    at_pos=clay.positions
+    min_clay=at_pos.min(axis=0)
+    max_clay=at_pos.max(axis=0)
+    
+    print('To select the ions in the bulk solution, use "resname (atom) and (prop <', min_clay[2], 'or prop >', max_clay[2], ')" for the atom selection')
+    
 #%%
 
 # Atomic density
