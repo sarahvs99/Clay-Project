@@ -292,7 +292,7 @@ def insert_ion_waters(ion_datfile: str, ingro: str, outgro: str) -> None:
 
 #%%
 
-def insert_molecules_centered(u: mda.Universe, outgro: str, atom_dict: dict,
+def insert_molecules_centered(ingro: str, outgro: str, atom_dict: dict,
                               clay_dist=0) -> None:
     """
     Replace SOL by nmols ions_type within a layer at clay_dist from clay.
@@ -308,6 +308,8 @@ def insert_molecules_centered(u: mda.Universe, outgro: str, atom_dict: dict,
     :rtype: None
 
     """
+    
+    u=mda.Universe(ingro)
     
     i=0
     for pair in atom_dict:
@@ -372,6 +374,9 @@ def substitute_bulk_ions_gro(u: mda.Universe, ion_list: list, outgro: str,
     #calls gmx insert_molecules to insert SPC water into position ions were removed from
     insert_ion_waters('atom_pos.dat', outgro, outgro)
 
+    #inserts glycine
+    
+
     #replace SOL with ions
-    insert_molecules_centered(u, outgro, ions_dict)
+    insert_molecules_centered(outgro, outgro, ions_dict)
                       
