@@ -319,6 +319,7 @@ def insert_molecules_centered(ingro: str, outgro: str, atom_dict: dict,
         close_sol=select_atoms_in_outside_clay(u, 'resname', 'SOL', 'outside',
                                                 30).residues
         all_sol=u.select_atoms('resname SOL').residues
+        
         far_sol_layer=all_sol - close_sol
         
         sol_indices = far_sol_layer.resids
@@ -331,12 +332,107 @@ def insert_molecules_centered(ingro: str, outgro: str, atom_dict: dict,
         print(len(sol_h_atoms))
         
         sol_o_atoms = sol_sub_atoms - sol_h_atoms
+        print(sol_o_atoms)
+        print(sol_o_atoms.names)
+        
         sol_o_atoms.names = np.full(nmols, ion_type)
+        print(sol_o_atoms.names)
+        sol_o_atoms.residues.resnames = np.full(nmols, ion_type)
         new_u = u.atoms - sol_h_atoms
         u=new_u
         i += 1
+  
+    
     
     u.write(outgro)
+
+#%%
+
+def run_gmx_insert_molecules2(confgro: str, insertgro: str, outgro: str,
+                             nmols: int, pos: str='', scale: float='',
+                             radius: float='', dr: float='', replace: str='') -> None:
+    """
+    
+    :param confgro: configuration where molecule is inserted
+    :type confgro: str
+    :param insertgro: configuration to be inserted
+    :type insertgro: str
+    :param outgro: configuration with inserted molecules
+    :type outgro: str
+    :param nmols: number of times insertgro is added
+    :type nmols: int
+    :param pos: path to .dat file with insertion positions, defaults to ''
+    :type pos: str, optional
+    :param scale: scaling factor for vdW radius, defaults to ''
+    :type scale: float, optional
+    :param radius: overwrites vdW radius, defaults to ''
+    :type radius: float, optional
+    :param dr: accepted deviation from specified insert positions, defaults to ''
+    :type dr: float, optional
+    :return: None
+    :rtype: None
+
+    """
+    if pos != '':
+        pos = f' -ip {pos}'
+    if scale != '':
+        scale = f' -scale {scale}'
+    if radius != '':
+        radius = f' -radius {radius}'
+    if dr != '':
+        dr = f' -dr {dr}'
+    if replace != '':
+        replace = f' -replace {replace}'
+    print(f'gmx insert-molecules -f {confgro} -ci {insertgro}'
+                       f'{pos} {dr} -o {outgro} -nmol {nmols}{scale}{radius}{replace}')
+    execute_bash_alias([f'gmx insert-molecules -f {confgro} -ci {insertgro}'
+                       f'{pos} {dr} -o {outgro} -nmol {nmols}{scale}{radius}{replace}'])
+
+
+def add_glycine(grofile: str, outgro: str, positions: str,
+                               nmols: int, scale: float=0.05,
+                               radius: float ='') -> None:
+    """
+    Insert SPC water in specified positions
+    :param grofile: configuration where water is inserted
+    :type grofile: str
+    :param outgro: configuration with inserted waters
+    :type outgro: str
+    :param positions: path to .dat file with insertion positions
+    :type positions: str
+    :param nmols: number of waters added
+    :type nmols: int
+    :param scale: scaling factor for vdW radius, defaults to 0.05
+    :type scale: float, optional
+    :param radius: overwrites vdW radius, defaults to ''
+    :type radius: float, optional
+    :return: None
+    :rtype: None
+
+    """
+    run_gmx_insert_molecules2(grofile, 'gly.gro', outgro, nmols,
+                             pos=positions, scale=scale, radius=radius, dr=1.500, replace='SOL')
+
+
+def insert_glycine(gly_datfile: str, ingro: str, outgro: str) -> None:
+    """
+    Call gmx insert-molecules to insert waters in positions specified in .dat file
+    :param gly_datfile: insertion positions file
+    :type gly_datfile: str
+    :param ingro: configuration where waters should be inserted
+    :type ingro: str
+    :param outgro: configuration with inserted waters
+    :type outgro: str
+    :return: None
+    :rtype: None
+
+    """
+    nmols = get_file_numlines(gly_datfile)
+    add_glycine(ingro, outgro, gly_datfile,
+                                   nmols)
+    print(' ')
+    print('Remember to remove replaced SOL and add glycine into top file')
+    print(' ')
 
 #%%
 
@@ -375,7 +471,7 @@ def substitute_bulk_ions_gro(u: mda.Universe, ion_list: list, outgro: str,
     insert_ion_waters('atom_pos.dat', outgro, outgro)
 
     #inserts glycine
-    
+    insert_glycine('gly_pos.dat', outgro, outgro)
 
     #replace SOL with ions
     insert_molecules_centered(outgro, outgro, ions_dict)
