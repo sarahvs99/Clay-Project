@@ -33,7 +33,7 @@ def get_clay_sel_str(*uc_stem: str) -> mda.AtomGroup:
         clay_sel_strs = ('', f'{uc_stem[0]}')
         print(clay_sel_strs)
     else:
-        clay_sel_strs = ('not ', ' '.join(['SOL', 'iSL',
+        clay_sel_strs = ('not ', ' '.join(['SOL', 'iSL', 'GLY',
                                            'Ca', 'Mg', 'Na',
                                            'K', 'Cl']))
         print(clay_sel_strs)
@@ -90,9 +90,9 @@ def get_atoms_in_outside_clay_sel_str(seltype,
     return atom_selection_str
 
 def select_atoms_in_outside_clay(u: mda.Universe,
-                                 seltype: ['name', 'resname'],
+                                 seltype,
                                  selname: str,
-                                 where: ['inside', 'outside'],
+                                 where,
                                  clay_dist: float=0,
                                  *uc_stem) -> mda.AtomGroup:
     """
@@ -214,7 +214,7 @@ def run_gmx_insert_molecules(confgro: str, insertgro: str, outgro: str,
                              radius: float='', dr: float='') -> None:
     """
     
-    :param confgro: configuration where molecule is inserted
+    :param confgro: configuration wuhere molecule is inserted
     :type confgro: str
     :param insertgro: configuration to be inserted
     :type insertgro: str
@@ -249,8 +249,8 @@ def run_gmx_insert_molecules(confgro: str, insertgro: str, outgro: str,
 
 
 def add_ion_replacement_waters(grofile: str, outgro: str, positions: str,
-                               nmols: int, scale: float=0.05,
-                               radius: float ='') -> None:
+                               nmols: int, scale: float=0.35,
+                               radius: float =0.105) -> None:
     """
     Insert SPC water in specified positions
     :param grofile: configuration where water is inserted
@@ -342,97 +342,8 @@ def insert_molecules_centered(ingro: str, outgro: str, atom_dict: dict,
         u=new_u
         i += 1
   
-    
-    
-    u.write(outgro)
 
-#%%
-
-def run_gmx_insert_molecules2(confgro: str, insertgro: str, outgro: str,
-                             nmols: int, pos: str='', scale: float='',
-                             radius: float='', dr: float='', replace: str='') -> None:
-    """
-    
-    :param confgro: configuration where molecule is inserted
-    :type confgro: str
-    :param insertgro: configuration to be inserted
-    :type insertgro: str
-    :param outgro: configuration with inserted molecules
-    :type outgro: str
-    :param nmols: number of times insertgro is added
-    :type nmols: int
-    :param pos: path to .dat file with insertion positions, defaults to ''
-    :type pos: str, optional
-    :param scale: scaling factor for vdW radius, defaults to ''
-    :type scale: float, optional
-    :param radius: overwrites vdW radius, defaults to ''
-    :type radius: float, optional
-    :param dr: accepted deviation from specified insert positions, defaults to ''
-    :type dr: float, optional
-    :return: None
-    :rtype: None
-
-    """
-    if pos != '':
-        pos = f' -ip {pos}'
-    if scale != '':
-        scale = f' -scale {scale}'
-    if radius != '':
-        radius = f' -radius {radius}'
-    if dr != '':
-        dr = f' -dr {dr}'
-    if replace != '':
-        replace = f' -replace {replace}'
-    print(f'gmx insert-molecules -f {confgro} -ci {insertgro}'
-                       f'{pos} {dr} -o {outgro} -nmol {nmols}{scale}{radius}{replace}')
-    execute_bash_alias([f'gmx insert-molecules -f {confgro} -ci {insertgro}'
-                       f'{pos} {dr} -o {outgro} -nmol {nmols}{scale}{radius}{replace}'])
-
-
-def add_glycine(grofile: str, outgro: str, positions: str,
-                               nmols: int, scale: float=0.05,
-                               radius: float ='') -> None:
-    """
-    Insert SPC water in specified positions
-    :param grofile: configuration where water is inserted
-    :type grofile: str
-    :param outgro: configuration with inserted waters
-    :type outgro: str
-    :param positions: path to .dat file with insertion positions
-    :type positions: str
-    :param nmols: number of waters added
-    :type nmols: int
-    :param scale: scaling factor for vdW radius, defaults to 0.05
-    :type scale: float, optional
-    :param radius: overwrites vdW radius, defaults to ''
-    :type radius: float, optional
-    :return: None
-    :rtype: None
-
-    """
-    run_gmx_insert_molecules2(grofile, 'gly.gro', outgro, nmols,
-                             pos=positions, scale=scale, radius=radius, dr=1.500, replace='SOL')
-
-
-def insert_glycine(gly_datfile: str, ingro: str, outgro: str) -> None:
-    """
-    Call gmx insert-molecules to insert waters in positions specified in .dat file
-    :param gly_datfile: insertion positions file
-    :type gly_datfile: str
-    :param ingro: configuration where waters should be inserted
-    :type ingro: str
-    :param outgro: configuration with inserted waters
-    :type outgro: str
-    :return: None
-    :rtype: None
-
-    """
-    nmols = get_file_numlines(gly_datfile)
-    add_glycine(ingro, outgro, gly_datfile,
-                                   nmols)
-    print(' ')
-    print('Remember to remove replaced SOL and add glycine into top file')
-    print(' ')
+    u.write(outgro, reindex=True)
 
 #%%
 
@@ -470,9 +381,59 @@ def substitute_bulk_ions_gro(u: mda.Universe, ion_list: list, outgro: str,
     #calls gmx insert_molecules to insert SPC water into position ions were removed from
     insert_ion_waters('atom_pos.dat', outgro, outgro)
 
-    #inserts glycine
-    insert_glycine('gly_pos.dat', outgro, outgro)
-
     #replace SOL with ions
     insert_molecules_centered(outgro, outgro, ions_dict)
-                      
+    
+
+#%%
+
+def run_gmx_editconf(confgro: str) -> None:
+    """
+    
+    :param confgro: configuration where mresidues are reordered
+    :type confgro: str
+    """
+    
+    print(f'gmx editconf -f {confgro} -o {confgro} -resnr 1')
+    execute_bash_alias([f'gmx editconf -f {confgro} -o {confgro} -resnr 1'])
+
+
+def reindex_resnr(grofile: str) -> None:
+    """
+    Reindex the residue numbers in grofile
+    :param grofile: grofile to reorder
+    :type grofile: str
+    :return: None
+    :rtype: None
+
+    """
+    run_gmx_editconf(grofile)
+
+
+def reorder_gro(ingro, reorder_list):
+    '''
+    Selects atoms in reorder_list above and below clay, removes atom selection from overall gro file and adds atom selection to bottom of gro file 
+    
+    Parameters
+    -------------
+    ingro: .gro file you wish to reorder
+    
+    reorder_list: residues you wish to reorder, in the order you want them to appear in the .gro
+    '''
+    
+    i=0
+    for entry in reorder_list:
+        u=mda.Universe(ingro)
+        
+        ion_type=reorder_list[i]
+        ag=select_atoms_in_outside_clay(u, 'resname', ion_type, 'outside', 100)
+        
+        
+        new_u=u.atoms - ag.atoms
+        new_u2=new_u.atoms + ag.atoms
+        
+        u=new_u2
+        u.write(ingro)
+        i += 1
+   
+    reindex_resnr(ingro)       
