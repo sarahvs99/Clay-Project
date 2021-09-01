@@ -259,7 +259,7 @@ def getcoord(rdf, r, dens):
     dr = r[1] - r[0]
     
     integral = 0.0
-    for i in range(25, 48):
+    for i in range(imin):
         integral += 4 * np.pi * float(r[i]) * float(r[i]) * float(dr) * float(rdf[i])
     print(f'the coordination number is {float(integral) * dens}')
 
