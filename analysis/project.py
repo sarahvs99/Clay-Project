@@ -158,4 +158,4 @@ def trajectory_rmsd(u, atom_sel):
     rmsd_df=pd.DataFrame(trj_rmsd.results.rmsd, columns=cols)
     rmsd_np=rmsd_df.to_numpy()
     file_name1=input('Enter the filename. Must end in .csv : ')
-    np.savetxt(file_name1, rmsd_np, delimiter=' ', fmt='%f', header=selection)
+    np.savetxt(file_name1, rmsd_np, delimiter=' ', fmt='%f', header='Time_ps RMSD')
