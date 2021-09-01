@@ -45,10 +45,9 @@ def position_density(u, atoms):
     # Rename columns
     z_pos_dens=z_pos_dens.rename(columns = {'index':'z-coordinate', 'pos':'position density'})
     
-    z_pos_np=z_pos_dens.to_numpy()
-    
     z_pos_dens['normalised density']=(atom_density.results.z.pos - np.min(atom_density.results.z.pos))/(np.max(atom_density.results.z.pos) - np.min(atom_density.results.z.pos))
 
+    z_pos_np=z_pos_dens.to_numpy()
     file_name=input('Enter the filename for z density. Must end in .csv : ')
     np.savetxt(file_name, z_pos_np, delimiter=' ', fmt='%f', header='pos pos_std norm_dens')
 
