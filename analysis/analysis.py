@@ -139,7 +139,6 @@ def position_density(u, atoms, dyn):
         plot=input('Would you like to plot another graph? (y/n): ')
     
     print(' ')
-    print('Normalisation of the data can be done using the min_max function')
     print('Thank you for using this function. Have a nice day!')
 
 def charge_density(top, traj, atoms, dyn):
@@ -244,7 +243,6 @@ def charge_density(top, traj, atoms, dyn):
         plot=input('Would you like to plot another graph? (y/n): ')
     
     print(' ')
-    print('Normalisation of the data can be done using the min_max function')
     print('Thank you for using this function. Have a nice day!')
         
 #%%
