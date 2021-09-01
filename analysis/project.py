@@ -113,7 +113,7 @@ def mean_sq_disp(u, selection):
     .csv file of the MSD
     '''
     
-    MSD = msd.EinsteinMSD(u, select=selection, msd_type=z, fft=False).run()
+    MSD = msd.EinsteinMSD(u, select=selection, msd_type='z', fft=False).run()
     
     nframes = MSD.n_frames
     print(' ')
@@ -148,7 +148,7 @@ def trajectory_rmsd(u, atom_sel):
     .csv file of RMSD
     '''
     
-    trj_rmsd=rms.RMSD(u, u, select=atom_sel, groupselections=additional, ref_frame=0).run()
+    trj_rmsd=rms.RMSD(u, u, select=atom_sel, ref_frame=0).run()
     
     selection=input('Enter a name for the atom_sel selection. This will be used as the column heading in the dataframe and the key on the graph of RMSD: ')
     
