@@ -15,22 +15,6 @@ import numpy as np
 import matplotlib.pyplot as plt 
 
 #%%
-
-# from trial1.py
-
-def universe_help():
-    '''Tells user how to create a universe
-    '''
-    print("To create a universe input: name=mda.Universe('top file', 'traj files')" )
-    
-def atomgroup_help():
-    '''Tells user how to create an AtomGroup
-    '''
-    print("To create an AtomGroup input: name=mda.AtomGroup(universe.select_atoms('atoms'), updating=True/False)")
-    print(' ')
-    print("'atoms': called using resname etc with boolean logic, set bounds using prop '?' >/</<= etc '?'")
-    print(' ')
-    print("updating: Is the group dynamic? True if yes, False if no")
     
 def atomgroup_coords(atomgroup):
     '''Generates the minimum and maximum x, y and z coordinates of atoms in AtomGroup
@@ -75,17 +59,15 @@ def position_density(u, atoms, dyn):
     '''Creates dataframes of the mass-weighted position density of an AtomGroup along each axis and gives the option to plot the DataFrames
     Parameters
     -----------
-    top: topology file used to create universe
+    u: universe
     
-    traj: trajectory file used to create universe
-    
-    atom: atom selection used to create AtomGroup
+    atoms: atom selection used to create AtomGroup
     
     dyn: dynamic selection used to create AtomGroup (True/False)
     
     Returns
     --------
-    The size of created dataframes and any graphs plotted'''
+    The size of created dataframes, .csv files and any graphs plotted'''
     
     # Generate minimum and maximum coordinates
     at_group=mda.AtomGroup(u.select_atoms(atoms, updating=dyn)) 
@@ -134,11 +116,11 @@ def position_density(u, atoms, dyn):
     save=input('Would you like to save the dataframes? (y/n): ')
     if save == 'y':
         file_name1=input('Enter the filename for x density. Must end in .csv : ')
-        np.savetxt(file_name1, x_pos_np, delimiter=' ', fmt='%f', header='axis_coord pos norm_pos pos_std')
+        np.savetxt(file_name1, x_pos_np, delimiter=' ', fmt='%f', header='pos pos_std')
         file_name2=input('Enter the filename for y density. Must end in .csv : ')
-        np.savetxt(file_name2, y_pos_np, delimiter=' ', fmt='%f', header='axis_coord pos norm_pos pos_std')
+        np.savetxt(file_name2, y_pos_np, delimiter=' ', fmt='%f', header='pos pos_std')
         file_name3=input('Enter the filename for z density. Must end in .csv : ')
-        np.savetxt(file_name3, z_pos_np, delimiter=' ', fmt='%f', header='axis_coord pos norm_pos pos_std')
+        np.savetxt(file_name3, z_pos_np, delimiter=' ', fmt='%f', header='pos pos_std')
     
     pos_dens=np.dstack([x_pos_np, y_pos_np, z_pos_np])
     
@@ -157,6 +139,7 @@ def position_density(u, atoms, dyn):
         plot=input('Would you like to plot another graph? (y/n): ')
     
     print(' ')
+    print('Normalisation of the data can be done using the min_max function')
     print('Thank you for using this function. Have a nice day!')
 
 def charge_density(top, traj, atoms, dyn):
@@ -196,9 +179,9 @@ def charge_density(top, traj, atoms, dyn):
     atom_density=lin.LinearDensity(at_group, binsize=0.25).run()
     
     # Create dataframes
-    x_char_dens=pd.DataFrame(atom_density.results['x'], columns=['char'])
-    y_char_dens=pd.DataFrame(atom_density.results['y'], columns=['char'])
-    z_char_dens=pd.DataFrame(atom_density.results['z'], columns=['char'])
+    x_char_dens=pd.DataFrame(atom_density.results.x.char, columns=['char'])
+    y_char_dens=pd.DataFrame(atom_density.results.y.char, columns=['char'])
+    z_char_dens=pd.DataFrame(atom_density.results.z.char, columns=['char'])
     
     # Create coordinate column info
     x_index=pd.Index(np.linspace(min_x, max_x, atom_density.nbins))
@@ -215,6 +198,10 @@ def charge_density(top, traj, atoms, dyn):
     z_char_dens=z_char_dens.set_index(z_index)
     z_char_dens.reset_index(inplace=True)
     
+    x_char_dens['std of charge density']=atom_density.results.x.char_std
+    y_char_dens['std of charge density']=atom_density.results.y.char_std
+    z_char_dens['std of charge density']=atom_density.results.z.char_std
+    
     # Rename columns
     x_char_dens=x_char_dens.rename(columns = {'index':'x-coordinate', 'char':'charge density'})
     y_char_dens=y_char_dens.rename(columns = {'index':'y-coordinate', 'char':'charge density'})
@@ -229,6 +216,15 @@ def charge_density(top, traj, atoms, dyn):
     x_char_np=x_char_dens.to_numpy()
     y_char_np=y_char_dens.to_numpy()
     z_char_np=z_char_dens.to_numpy()
+    
+    save=input('Would you like to save the dataframes? (y/n): ')
+    if save == 'y':
+        file_name1=input('Enter the filename for x density. Must end in .csv : ')
+        np.savetxt(file_name1, x_char_np, delimiter=' ', fmt='%f', header='char char_std')
+        file_name2=input('Enter the filename for y density. Must end in .csv : ')
+        np.savetxt(file_name2, y_char_np, delimiter=' ', fmt='%f', header='char char_std')
+        file_name3=input('Enter the filename for z density. Must end in .csv : ')
+        np.savetxt(file_name3, z_char_np, delimiter=' ', fmt='%f', header='char char_std')
     
     char_dens=np.dstack([x_char_np, y_char_np, z_char_np])
     
@@ -248,15 +244,26 @@ def charge_density(top, traj, atoms, dyn):
         plot=input('Would you like to plot another graph? (y/n): ')
     
     print(' ')
+    print('Normalisation of the data can be done using the min_max function')
     print('Thank you for using this function. Have a nice day!')
         
-            
-   
-
 #%%
 
 # RDF
 from MDAnalysis.analysis import rdf
+
+def getcoord(rdf, r, dens):
+    '''Calculates coordination number'''
+    
+    imax=rdf.argmax()
+    imin=imax + rdf[imax:].argmin()
+    
+    dr = r[1] - r[0]
+    
+    integral = 0.0
+    for i in range(25, 48):
+        integral += 4 * np.pi * float(r[i]) * float(r[i]) * float(dr) * float(rdf[i])
+    print(f'the coordination number is {float(integral) * dens}')
 
 def average_rdf(atomgroup1, atomgroup2, bins, rdf_range):
     '''Plots the average radial distribution function for two AtomGroups
@@ -279,11 +286,11 @@ def average_rdf(atomgroup1, atomgroup2, bins, rdf_range):
     
     save=input('Would you like to save the dataframe? (y/n): ')
     if save == 'y':
-        df=pd.DataFrame(av_rdf.results.rdf)
-        df['radius']=av_rdf.results.bins
+        df=pd.DataFrame(av_rdf.results.bins)
+        df['rdf']=av_rdf.results.rdf
         array=df.to_numpy()
         file_name1=input('Enter the filename. Must end in .csv : ')
-        np.savetxt(file_name1, array, delimiter=' ', fmt='%f', header='av_rdf radius')
+        np.savetxt(file_name1, array, delimiter=' ', fmt='%f', header='av_rdf')
     
     plot=input('Would you like to plot the dataframe? (y/n): ')
     if plot == 'y':
@@ -291,6 +298,11 @@ def average_rdf(atomgroup1, atomgroup2, bins, rdf_range):
         plt.xlabel('Radius (Å)')
         plt.ylabel('Radial distribution')
         return av_rdf_plot
+    
+    dens=float(input('What is the density of one of the atom groups?'))
+    
+    getcoord(av_rdf.results.rdf, av_rdf.results.bins, dens)
+    
 
 def intraAG_average_rdf(atomgroup1, bins, rdf_range, exclusion):
     '''Plots the average radial distribution function for an AtomGroup to iself
@@ -414,11 +426,11 @@ def mean_sq_disp(u, selection, dimension, algorithm):
     #create df to save
     save=input('Would you like to save the dataframe? (y/n): ')
     if save == 'y':
-        df=pd.DataFrame(MSD.results.timeseries)
-        df['time']=sim_time
+        df=pd.DataFrame(sim_time)
+        df['msd']=MSD.results.timeseries
         array=df.to_numpy()
         file_name1=input('Enter the filename. Must end in .csv : ')
-        np.savetxt(file_name1, array, delimiter=' ', fmt='%f', header='msd time')
+        np.savetxt(file_name1, array, delimiter=' ', fmt='%f', header='msd')
     
     plot=input('Would you like to plot the dataframe? (y/n): ')
     if plot == 'y':
@@ -501,7 +513,7 @@ def trajectory_rmsd(u1, u2, atom_sel, additional, reference):
     
     trj_rmsd=rms.RMSD(u1, u2, select=atom_sel, groupselections=additional, ref_frame=reference).run()
     
-    cols = ['Frame', 'Time (ns)']
+    cols = ['Frame', 'Time (ps)']
     
     selection=input('Enter a name for the atom_sel selection. This will be used as the column heading in the dataframe and the key on the graph of RMSD: ')
     
@@ -523,7 +535,7 @@ def trajectory_rmsd(u1, u2, atom_sel, additional, reference):
     file_name1=input('Enter the filename. Must end in .csv : ')
     np.savetxt(file_name1, rmsd_np, delimiter=' ', fmt='%f')
     
-    rmsd_plot=rmsd_df.plot(x='Time (ns)', y=cols[2:], kind='line')
+    rmsd_plot=rmsd_df.plot(x='Time (ps)', y=cols[2:], kind='line')
     rmsd_plot.set_ylabel('Root Mean-Squared Deviation (Å)')
     rmsd_plot.set_title(input('Enter a title for graph of RMSD: '))
     rmsd_plot.legend()
